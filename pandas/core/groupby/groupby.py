@@ -1459,6 +1459,94 @@ class GroupBy(_GroupBy):
                 return result.T
             return result.unstack()
 
+    
+    def sample(groupby_result, size=None, frac=None, replace=False, weights=None):
+        groups_dictionary=groupby_result.groups
+   
+        #check size and frac:
+        #if no input sieze and no input frac: default sto size = 1
+        if(size == None and frac == None):
+            final_size=1
+    
+        #if no input size but have the frac:
+        elif(size == None and frac is not None):
+            final_size=int(round(frac*len(groups_dictionary)))
+
+        #if no input frac but have the size:
+        elif(size is not None and frac is None and size % 1 ==0):
+            final_size=size
+        elif(size is not None and frac is None and size % 1 !=0):
+            raise ValueError("Only integers accepted as size value")
+        #if both enter size and frac: error
+        elif(size is not None and frac is not None):
+            raise ValueError('Please enter a value for `frac` OR `size`, not both')
+
+        print("For the given group, the size of sample is %d" %final_size)
+
+        #errors:
+        if(size is not None):
+        #1. non-integer size error:
+        #if(size%1 !=0):
+        #    raise ValueError("Only integers accepted as size value")
+
+        #2. negative size error:
+            if size < 0:
+                raise ValueError("A negative number of sample size requested. Please provide a positive value.")
+                
+        #3. overflow error:
+            maximum_size=len(groups_dictionary)
+            if size > maximum_size:
+               raise ValueError("The size of requested sample is overflow. Please provide the value of size in range.")
+               
+        if(frac is not None):
+            if(frac >1):
+                raise ValueError("Only float between 0 an 1 accepted as frac value")
+
+
+        #edge warning:
+        if(size==0 or frac ==0):
+            raise Warning("Random sample is empty: the input sample size is 0")
+        if(size==len(groups_dictionary) or frac ==1):
+            raise Warning("Random sample equals to the given groupbt: the inplut size is the same as the size of the input group")
+
+        if weights is not None:
+            #weights is a list
+            if(len(weights) != len(groups_dictionary.keys())):
+                raise ValueError("Weights and axis to be sampled must be the same length")
+            for w in weights:
+                #if(w == np.inf() or w == -np.inf()):
+                #    raise ValueError("Weight vectr may not inclue `inf` values")
+                if(w < 0):
+                    raise ValueError("Weight vector may no include nagative value")
+                # If has nan, set to zero:
+                if(w==np.nan):
+                    w=0
+
+            # Renormalize if don's sum to 1:
+            if(sum(weights)!=1):
+                if(sum(weights)!=0):
+                    new_weights=[]
+                    for w in weights:
+                        new_w = w / sum(weights)
+                        new_weights.append(new_w)
+                    weights=new_weights
+                else:
+                    raise ValueError("Invalid weights: weights sum to zero")
+
+        #random sampling:
+        #sample=random.sample(groups_dictionary.keys(),final_size, replace=replace)
+        dictionary_keys=list(groups_dictionary.keys())
+        num_of_keys=len(dictionary_keys)
+        sample=np.random.choice(num_of_keys,size=final_size,replace=replace,p=weights)
+        sample_keys=[]
+        for i in sample:
+            sample_keys.append(dictionary_keys[i])
+        sample_dictionary={key: value for key, value in groups_dictionary.items() if key in sample_keys}
+
+        return sample_dictionary
+
+    
+    
     def resample(self, rule, *args, **kwargs):
         """
         Provide resampling when using a TimeGrouper.
