@@ -805,7 +805,7 @@ class TestArithmeticOps(BaseOpsUtil):
             ops("foo")
         
         msg="invalid scalars"
-        with pytest.raises(TypeError):
+        with pytest.raises(TypeError, match=msg):
             ops(pd.Timestamp("20180101"))
 
         # invalid array-likes
