@@ -1,0 +1,26 @@
+From 039326d0b9f40d9816a7a30de8e358ee07592525 Mon Sep 17 00:00:00 2001
+From: Da Xin <da.xin@wsu.edu>
+Date: Sun, 12 Apr 2020 18:33:32 -0700
+Subject: [PATCH 1/2] issue 29547 replace old string formatting syntax with
+ f-strings
+
+---
+ pandas/tests/util/test_assert_frame_equal.py | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/pandas/tests/util/test_assert_frame_equal.py b/pandas/tests/util/test_assert_frame_equal.py
+index 3090343ba..3128871f2 100644
+--- a/pandas/tests/util/test_assert_frame_equal.py
++++ b/pandas/tests/util/test_assert_frame_equal.py
+@@ -215,6 +215,7 @@ def test_frame_equal_unicode(df1, df2, msg, by_blocks_fixture, obj_fixture):
+     #
+     # Test ensures that `tm.assert_frame_equals` raises the right exception
+     # when comparing DataFrames containing differing unicode objects.
+-    msg = msg.format(obj=obj_fixture)
++    #msg = msg.format(obj=obj_fixture)
++    msg = f"'{obj_fixture}'.'"
+     with pytest.raises(AssertionError, match=msg):
+         tm.assert_frame_equal(df1, df2, by_blocks=by_blocks_fixture, obj=obj_fixture)
+-- 
+2.24.1.windows.2
+
